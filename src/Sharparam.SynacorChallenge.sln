@@ -1,8 +1,28 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sharparam.SynacorChallenge.VM", "Sharparam.SynacorChallenge.VM\Sharparam.SynacorChallenge.VM.csproj", "{4C95D3D7-49CB-4169-ABC2-16795C145848}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sharparam.SynacorChallenge.Console", "Sharparam.SynacorChallenge.Console\Sharparam.SynacorChallenge.Console.csproj", "{0AB8A3ED-BBD0-4952-8334-FB39F52869DF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sharparam.SynacorChallenge.VM.Tests", "Sharparam.SynacorChallenge.VM.Tests\Sharparam.SynacorChallenge.VM.Tests.csproj", "{EC7987D3-86CD-4B66-9B40-3FF67E979DE3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4C95D3D7-49CB-4169-ABC2-16795C145848}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4C95D3D7-49CB-4169-ABC2-16795C145848}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4C95D3D7-49CB-4169-ABC2-16795C145848}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4C95D3D7-49CB-4169-ABC2-16795C145848}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0AB8A3ED-BBD0-4952-8334-FB39F52869DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0AB8A3ED-BBD0-4952-8334-FB39F52869DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0AB8A3ED-BBD0-4952-8334-FB39F52869DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0AB8A3ED-BBD0-4952-8334-FB39F52869DF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EC7987D3-86CD-4B66-9B40-3FF67E979DE3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EC7987D3-86CD-4B66-9B40-3FF67E979DE3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EC7987D3-86CD-4B66-9B40-3FF67E979DE3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EC7987D3-86CD-4B66-9B40-3FF67E979DE3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

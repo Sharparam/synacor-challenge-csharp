@@ -106,7 +106,7 @@ namespace Sharparam.SynacorChallenge.VM
 
                 case OpCode.Set:
                 {
-                    var target = NextMem();
+                    var target = NextOperand();
                     var val = NextValue();
                     Registers[target] = val;
                 }
@@ -127,7 +127,7 @@ namespace Sharparam.SynacorChallenge.VM
 
                 case OpCode.Equal:
                 {
-                    var target = NextMem();
+                    var target = NextOperand();
                     var a = NextValue();
                     var b = NextValue();
                     Registers[target] = NumberHelper.Equal(a, b);
@@ -136,7 +136,7 @@ namespace Sharparam.SynacorChallenge.VM
 
                 case OpCode.GreaterThan:
                 {
-                    var target = NextMem();
+                    var target = NextOperand();
                     var a = NextValue();
                     var b = NextValue();
                     Registers[target] = NumberHelper.GreaterThan(a, b);
@@ -169,7 +169,7 @@ namespace Sharparam.SynacorChallenge.VM
 
                 case OpCode.Add:
                 {
-                    var target = NextMem();
+                    var target = NextOperand();
                     var a = NextValue();
                     var b = NextValue();
                     Registers[target] = NumberHelper.Add(a, b);
@@ -179,7 +179,7 @@ namespace Sharparam.SynacorChallenge.VM
 
                 case OpCode.Multiply:
                 {
-                    var target = NextMem();
+                    var target = NextOperand();
                     var a = NextValue();
                     var b = NextValue();
                     Registers[target] = NumberHelper.Multiply(a, b);
@@ -188,7 +188,7 @@ namespace Sharparam.SynacorChallenge.VM
 
                 case OpCode.Mod:
                 {
-                    var target = NextMem();
+                    var target = NextOperand();
                     var a = NextValue();
                     var b = NextValue();
                     Registers[target] = NumberHelper.Mod(a, b);
@@ -197,7 +197,7 @@ namespace Sharparam.SynacorChallenge.VM
 
                 case OpCode.And:
                 {
-                    var target = NextMem();
+                    var target = NextOperand();
                     var a = NextValue();
                     var b = NextValue();
                     Registers[target] = NumberHelper.And(a, b);
@@ -206,7 +206,7 @@ namespace Sharparam.SynacorChallenge.VM
 
                 case OpCode.Or:
                 {
-                    var target = NextMem();
+                    var target = NextOperand();
                     var a = NextValue();
                     var b = NextValue();
                     Registers[target] = NumberHelper.Or(a, b);
@@ -215,7 +215,7 @@ namespace Sharparam.SynacorChallenge.VM
 
                 case OpCode.Not:
                 {
-                    var target = NextMem();
+                    var target = NextOperand();
                     var a = NextValue();
                     Registers[target] = ~(Literal)a;
                 }
@@ -223,7 +223,7 @@ namespace Sharparam.SynacorChallenge.VM
 
                 case OpCode.ReadMem:
                 {
-                    var target = NextMem();
+                    var target = NextOperand();
                     var val = Memory[NextValue()];
                     Registers[target] = val;
                 }
@@ -286,7 +286,7 @@ namespace Sharparam.SynacorChallenge.VM
                         _inputQueue.Enqueue('\n');
                     }
 
-                    var target = NextMem();
+                    var target = NextOperand();
                     Registers[target] = _inputQueue.Dequeue();
                 }
                     break;
@@ -314,9 +314,9 @@ namespace Sharparam.SynacorChallenge.VM
             return number;
         }
 
-        private ushort NextMem() => Memory[Pointer++];
+        private ushort NextOperand() => Memory[Pointer++];
 
-        private ushort NextValue() => ValueOf(NextMem());
+        private ushort NextValue() => ValueOf(NextOperand());
 
         private void Set(ushort value)
         {

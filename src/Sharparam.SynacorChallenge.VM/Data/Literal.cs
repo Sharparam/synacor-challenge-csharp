@@ -2,6 +2,7 @@ namespace Sharparam.SynacorChallenge.VM.Data
 {
     using System;
 
+    [Serializable]
     public readonly struct Literal : IEquatable<Literal>, IEquatable<ushort>, IComparable<Literal>, IComparable<ushort>
     {
         public const ushort MaxValue = 32767;

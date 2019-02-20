@@ -83,7 +83,7 @@ namespace Sharparam.SynacorChallenge.VM
 
         public void Reset(bool clearMemory = false)
         {
-            _log.LogDebug($"Resetting VM state ({nameof(clearMemory)} == {{ClearMemory}}", clearMemory);
+            _log.LogDebug($"Resetting VM state ({nameof(clearMemory)} == {{ClearMemory}})", clearMemory);
 
             _state.Reset(clearMemory);
 
@@ -130,7 +130,7 @@ namespace Sharparam.SynacorChallenge.VM
                     var target = NextOperand();
                     var a = NextValue();
                     var b = NextValue();
-                    Registers[target] = NumberHelper.Equal(a, b);
+                    Registers[target] = (Literal)(a == b ? 1 : 0);
                 }
                     break;
 
@@ -139,7 +139,7 @@ namespace Sharparam.SynacorChallenge.VM
                     var target = NextOperand();
                     var a = NextValue();
                     var b = NextValue();
-                    Registers[target] = NumberHelper.GreaterThan(a, b);
+                    Registers[target] = (Literal)(a > b ? 1 : 0);
                 }
                     break;
 
@@ -172,7 +172,7 @@ namespace Sharparam.SynacorChallenge.VM
                     var target = NextOperand();
                     var a = NextValue();
                     var b = NextValue();
-                    Registers[target] = NumberHelper.Add(a, b);
+                    Registers[target] = a + b;
                 }
 
                     break;
@@ -182,7 +182,7 @@ namespace Sharparam.SynacorChallenge.VM
                     var target = NextOperand();
                     var a = NextValue();
                     var b = NextValue();
-                    Registers[target] = NumberHelper.Multiply(a, b);
+                    Registers[target] = a * b;
                 }
                     break;
 
@@ -191,7 +191,7 @@ namespace Sharparam.SynacorChallenge.VM
                     var target = NextOperand();
                     var a = NextValue();
                     var b = NextValue();
-                    Registers[target] = NumberHelper.Mod(a, b);
+                    Registers[target] = a % b;
                 }
                     break;
 
@@ -200,7 +200,7 @@ namespace Sharparam.SynacorChallenge.VM
                     var target = NextOperand();
                     var a = NextValue();
                     var b = NextValue();
-                    Registers[target] = NumberHelper.And(a, b);
+                    Registers[target] = a & b;
                 }
                     break;
 
@@ -209,7 +209,7 @@ namespace Sharparam.SynacorChallenge.VM
                     var target = NextOperand();
                     var a = NextValue();
                     var b = NextValue();
-                    Registers[target] = NumberHelper.Or(a, b);
+                    Registers[target] = a | b;
                 }
                     break;
 
@@ -217,7 +217,7 @@ namespace Sharparam.SynacorChallenge.VM
                 {
                     var target = NextOperand();
                     var a = NextValue();
-                    Registers[target] = ~(Literal)a;
+                    Registers[target] = ~a;
                 }
                     break;
 
@@ -299,7 +299,7 @@ namespace Sharparam.SynacorChallenge.VM
             }
         }
 
-        private ushort ValueOf(ushort number)
+        private Literal ValueOf(ushort number)
         {
             if (number > Operand.MaxValue)
             {
@@ -308,15 +308,15 @@ namespace Sharparam.SynacorChallenge.VM
 
             if (number > Literal.MaxValue)
             {
-                return Registers[number];
+                return (Literal)Registers[number];
             }
 
-            return number;
+            return (Literal)number;
         }
 
-        private ushort NextOperand() => Memory[Pointer++];
+        private Operand NextOperand() => Memory[Pointer++];
 
-        private ushort NextValue() => ValueOf(NextOperand());
+        private Literal NextValue() => ValueOf(NextOperand());
 
         private void Set(ushort value)
         {

@@ -19,11 +19,5 @@ namespace Sharparam.SynacorChallenge.VM.Tests
             var (_, high) = NumberHelper.ExtractLowHigh(number);
             Assert.That(high, Is.EqualTo(0x34));
         }
-
-        [Test]
-        public void ShouldAddWithModulo()
-        {
-            Assert.That(NumberHelper.Add(32758, 15), Is.EqualTo(5));
-        }
     }
 }

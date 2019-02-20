@@ -328,9 +328,9 @@ namespace Sharparam.SynacorChallenge.VM
 
         private (bool Handled, bool AdjustPointer) HandleInput(string line)
         {
-            if (line.StartsWith("save"))
+            if (line.StartsWith("$save"))
             {
-                var path = line.Substring("save".Length).Trim();
+                var path = line.Substring("$save".Length).Trim();
 
                 if (string.IsNullOrWhiteSpace(path))
                 {
@@ -345,12 +345,12 @@ namespace Sharparam.SynacorChallenge.VM
                 _state.InstructionPointer--;
                 _state.SaveToDumpFile(path);
                 _log.LogInformation("Saved current state to dumpfile \"{Path}\"", path);
-                return (true, true);
+                return (true, false);
             }
 
-            if (line.StartsWith("load"))
+            if (line.StartsWith("$load"))
             {
-                var path = line.Substring("load".Length).Trim();
+                var path = line.Substring("$load".Length).Trim();
 
                 if (string.IsNullOrWhiteSpace(path))
                 {

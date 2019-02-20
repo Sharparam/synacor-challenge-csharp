@@ -369,6 +369,13 @@ namespace Sharparam.SynacorChallenge.VM
                 return (true, false);
             }
 
+            if (line == "$addr")
+            {
+                var actualAddress = Pointer - 1;
+                _log.LogInformation("Current address: {Address} (0x{HexAddress:X})", actualAddress, actualAddress);
+                return (true, true);
+            }
+
             return (false, false);
         }
     }

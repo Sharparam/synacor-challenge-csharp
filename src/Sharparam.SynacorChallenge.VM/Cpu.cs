@@ -2,67 +2,78 @@ namespace Sharparam.SynacorChallenge.VM
 {
     using System;
     using System.Collections.Generic;
+    using System.ComponentModel.Design.Serialization;
+    using System.IO;
+
+    using Data;
 
     using Microsoft.Extensions.Logging;
 
     public class Cpu
     {
-        private const ushort MemorySize = 0x7FFF;
-
-        private const int RegisterCount = 8;
-
         private readonly ILogger _log;
-
-        private readonly ushort[] _memory;
-
-        private readonly ushort[] _registers;
-
-        private readonly Stack<ushort> _stack;
 
         private readonly IOutputWriter _outputWriter;
 
         private readonly IInputReader _inputReader;
 
-        private ushort _pointer;
+        private readonly Queue<char> _inputQueue;
+
+        private State _state;
 
         private bool _running;
 
         public Cpu(ILogger<Cpu> log, IOutputWriter outputWriter, IInputReader inputReader)
         {
             _log = log;
+            _state = new State();
             _outputWriter = outputWriter;
             _inputReader = inputReader;
-            _memory = new ushort[MemorySize];
-            _registers = new ushort[RegisterCount];
-            _stack = new Stack<ushort>();
+            _inputQueue = new Queue<char>();
+        }
+
+        private Memory Memory => _state.Memory;
+
+        private Registers Registers => _state.Registers;
+
+        private Stack<ushort> Stack => _state.Stack;
+
+        private ushort Pointer
+        {
+            get => _state.InstructionPointer;
+            set => _state.InstructionPointer = value;
         }
 
         public void LoadProgram(Program program)
         {
+            Reset(true);
+
             var counter = 0;
 
             foreach (var entry in program)
             {
-                _memory[counter++] = entry;
+                Memory[counter++] = entry;
             }
-
-            _pointer = 0;
         }
 
         public void LoadProgram(ushort[] program)
         {
+            Reset(true);
+
             for (var i = 0; i < program.Length; i++)
             {
-                _memory[i] = program[i];
+                Memory[i] = program[i];
             }
-
-            _pointer = 0;
         }
 
-        public void Run()
+        public void Run(bool reset = true)
         {
+            if (reset)
+            {
+                Reset();
+            }
+
             _running = true;
-            _pointer = 0;
 
             while (_running)
             {
@@ -70,10 +81,21 @@ namespace Sharparam.SynacorChallenge.VM
             }
         }
 
+        public void Reset(bool clearMemory = false)
+        {
+            _log.LogDebug($"Resetting VM state ({nameof(clearMemory)} == {{ClearMemory}}", clearMemory);
+
+            _state.Reset(clearMemory);
+
+            _log.LogTrace("Resetting instruction pointer");
+            Pointer = 0;
+            _running = false;
+        }
+
         private void Step()
         {
             //_log.LogTrace("0x{Address:X}", _pointer);
-            var opByte = _memory[_pointer++];
+            var opByte = Memory[Pointer++];
             var opCode = (OpCode)opByte;
 
             switch (opCode)
@@ -86,21 +108,21 @@ namespace Sharparam.SynacorChallenge.VM
                 {
                     var target = NextMem();
                     var val = NextValue();
-                    Set((byte)target, val);
+                    Registers[target] = val;
                 }
                     break;
 
                 case OpCode.Push:
-                    _stack.Push(NextValue());
+                    Stack.Push(NextValue());
                     break;
 
                 case OpCode.Pop:
-                    if (_stack.Count == 0)
+                    if (Stack.Count == 0)
                     {
                         throw new InvalidOperationException("Cannot pop empty stack");
                     }
 
-                    Set(_stack.Pop());
+                    Set(Stack.Pop());
                     break;
 
                 case OpCode.Equal:
@@ -108,21 +130,21 @@ namespace Sharparam.SynacorChallenge.VM
                     var target = NextMem();
                     var a = NextValue();
                     var b = NextValue();
-                    Set((byte)target, (ushort)(a == b ? 1 : 0));
+                    Registers[target] = NumberHelper.Equal(a, b);
                 }
                     break;
 
-                case OpCode.Gt:
+                case OpCode.GreaterThan:
                 {
                     var target = NextMem();
                     var a = NextValue();
                     var b = NextValue();
-                    Set((byte)target, (ushort)(a > b ? 1 : 0));
+                    Registers[target] = NumberHelper.GreaterThan(a, b);
                 }
                     break;
 
                 case OpCode.Jump:
-                    _pointer = NextValue();
+                    Pointer = NextValue();
                     break;
 
                 case OpCode.JumpTrue:
@@ -130,7 +152,7 @@ namespace Sharparam.SynacorChallenge.VM
                     var truthDest = NextValue();
                     if (truthValue != 0)
                     {
-                        _pointer = truthDest;
+                        Pointer = truthDest;
                     }
 
                     break;
@@ -140,7 +162,7 @@ namespace Sharparam.SynacorChallenge.VM
                     var falseDest = NextValue();
                     if (falseValue == 0)
                     {
-                        _pointer = falseDest;
+                        Pointer = falseDest;
                     }
 
                     break;
@@ -150,7 +172,7 @@ namespace Sharparam.SynacorChallenge.VM
                     var target = NextMem();
                     var a = NextValue();
                     var b = NextValue();
-                    Set((byte)target, NumberHelper.Add(a, b));
+                    Registers[target] = NumberHelper.Add(a, b);
                 }
 
                     break;
@@ -160,7 +182,7 @@ namespace Sharparam.SynacorChallenge.VM
                     var target = NextMem();
                     var a = NextValue();
                     var b = NextValue();
-                    Set((byte)target, NumberHelper.Multiply(a, b));
+                    Registers[target] = NumberHelper.Multiply(a, b);
                 }
                     break;
 
@@ -169,7 +191,7 @@ namespace Sharparam.SynacorChallenge.VM
                     var target = NextMem();
                     var a = NextValue();
                     var b = NextValue();
-                    Set((byte)target, (ushort)(a % b));
+                    Registers[target] = NumberHelper.Mod(a, b);
                 }
                     break;
 
@@ -178,7 +200,7 @@ namespace Sharparam.SynacorChallenge.VM
                     var target = NextMem();
                     var a = NextValue();
                     var b = NextValue();
-                    Set((byte)target, (ushort)(a & b));
+                    Registers[target] = NumberHelper.And(a, b);
                 }
                     break;
 
@@ -187,7 +209,7 @@ namespace Sharparam.SynacorChallenge.VM
                     var target = NextMem();
                     var a = NextValue();
                     var b = NextValue();
-                    Set((byte)target, (ushort)(a | b));
+                    Registers[target] = NumberHelper.Or(a, b);
                 }
                     break;
 
@@ -195,16 +217,15 @@ namespace Sharparam.SynacorChallenge.VM
                 {
                     var target = NextMem();
                     var a = NextValue();
-                    var b = NextValue();
-                    Set((byte)target, (ushort)(a ^ b));
+                    Registers[target] = ~(Literal)a;
                 }
                     break;
 
                 case OpCode.ReadMem:
                 {
                     var target = NextMem();
-                    var val = _memory[NextValue()];
-                    Set((byte)target, val);
+                    var val = Memory[NextValue()];
+                    Registers[target] = val;
                 }
                     break;
 
@@ -212,36 +233,62 @@ namespace Sharparam.SynacorChallenge.VM
                 {
                     var target = NextValue();
                     var val = NextValue();
-                    _memory[target] = val;
+                    Memory[target] = val;
                 }
                     break;
 
                 case OpCode.Call:
                     var value = NextValue();
-                    _stack.Push(_pointer);
-                    _pointer = value;
+                    Stack.Push(Pointer);
+                    Pointer = value;
                     break;
 
                 case OpCode.Ret:
-                    if (_stack.Count == 0)
+                    if (Stack.Count == 0)
                     {
                         _running = false;
                     }
                     else
                     {
-                        _pointer = _stack.Pop();
+                        Pointer = Stack.Pop();
                     }
 
                     break;
 
                 case OpCode.Out:
-                    var charByte = _memory[_pointer++];
+                    var charByte = NextValue();
                     var charValue = (char)charByte;
                     _outputWriter.Write(charValue);
                     break;
 
                 case OpCode.In:
-                    Set(_inputReader.Read());
+                {
+                    if (_inputQueue.Count == 0)
+                    {
+                        var line = _inputReader.ReadLine().Trim();
+
+                        var (handled, adjustPointer) = HandleInput(line);
+                        if (handled)
+                        {
+                            if (adjustPointer)
+                            {
+                                Pointer--;
+                            }
+
+                            return;
+                        }
+
+                        foreach (var c in line.ToCharArray())
+                        {
+                            _inputQueue.Enqueue(c);
+                        }
+
+                        _inputQueue.Enqueue('\n');
+                    }
+
+                    var target = NextMem();
+                    Registers[target] = _inputQueue.Dequeue();
+                }
                     break;
 
                 case OpCode.NoOp:
@@ -254,50 +301,75 @@ namespace Sharparam.SynacorChallenge.VM
 
         private ushort ValueOf(ushort number)
         {
-            if (number >= 32776)
+            if (number > Operand.MaxValue)
             {
                 throw new ArgumentOutOfRangeException(nameof(number), number, "Values 32776 and higher are invalid");
             }
 
-            if (number > 32767)
+            if (number > Literal.MaxValue)
             {
-                return _registers[number - 32768];
+                return Registers[number];
             }
 
             return number;
         }
 
-        private ushort NextMem() => _memory[_pointer++];
+        private ushort NextMem() => Memory[Pointer++];
 
         private ushort NextValue() => ValueOf(NextMem());
 
-        private void Set()
-        {
-            var val = NextValue();
-            Set(val);
-        }
-
         private void Set(ushort value)
         {
-            var idx = _pointer;
-            var reg = _memory[idx];
-            if (reg >= _registers.Length)
+            var idx = Pointer;
+            var reg = Memory[idx];
+            Registers[reg] = value;
+            Pointer++;
+        }
+
+        private (bool Handled, bool AdjustPointer) HandleInput(string line)
+        {
+            if (line.StartsWith("save"))
             {
-                reg -= 32768;
+                var path = line.Substring("save".Length).Trim();
+
+                if (string.IsNullOrWhiteSpace(path))
+                {
+                    _log.LogError("Target path cannot be empty");
+                    return (true, true);
+                }
+
+                path = Path.ChangeExtension(path, "state");
+
+                // Rewind the instruction pointer first because we need to go back to the address containing
+                // the op code to run.
+                _state.InstructionPointer--;
+                _state.SaveToDumpFile(path);
+                _log.LogInformation("Saved current state to dumpfile \"{Path}\"", path);
+                return (true, true);
             }
 
-            _registers[reg] = value;
-            _pointer++;
-        }
+            if (line.StartsWith("load"))
+            {
+                var path = line.Substring("load".Length).Trim();
 
-        private void Set(byte reg)
-        {
-            _registers[reg] = NextValue();
-        }
+                if (string.IsNullOrWhiteSpace(path))
+                {
+                    _log.LogError("Target path cannot be empty");
+                    return (true, true);
+                }
 
-        private void Set(byte reg, ushort value)
-        {
-            _registers[reg] = value;
+                if (!File.Exists(path))
+                {
+                    _log.LogError("Target path does not exist");
+                    return (true, true);
+                }
+
+                _state = State.FromDumpFile(path);
+                _log.LogInformation("Loaded state from dumpfile \"{Path}\"", path);
+                return (true, false);
+            }
+
+            return (false, false);
         }
     }
 }

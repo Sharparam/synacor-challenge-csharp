@@ -20,11 +20,13 @@
 
             var serviceProvider = services.BuildServiceProvider();
 
-            var prog = VmProgram.FromFile("challenge.bin");
+            var path = args.Length > 0 ? args[0] : "challenge.bin";
+
+            var program = VmProgram.FromFile(path);
 
             var cpu = serviceProvider.GetRequiredService<Cpu>();
 
-            cpu.LoadProgram(prog);
+            cpu.LoadProgram(program);
             ////cpu.LoadProgram(new ushort[] { 9, 32768, 32769, 4, 19, 32768 });
             cpu.Run();
 

@@ -6,6 +6,6 @@ namespace Sharparam.SynacorChallenge.Console
 
     public class ConsoleInputReader : IInputReader
     {
-        public ushort Read() => System.Console.ReadLine().First();
+        public string ReadLine() => System.Console.ReadLine();
     }
 }

@@ -7,7 +7,7 @@ namespace Sharparam.SynacorChallenge.VM
         Push = 2,
         Pop = 3,
         Equal = 4,
-        Gt = 5,
+        GreaterThan = 5,
         Jump = 6,
         JumpTrue = 7,
         JumpFalse = 8,

@@ -33,6 +33,8 @@ namespace Sharparam.SynacorChallenge.VM.Data
             set => _data[ResolveIndex(index)] = value;
         }
 
+        public Memory Copy() => new Memory(_data);
+
         public void Clear()
         {
             for (var i = 0; i < MemorySize; i++)

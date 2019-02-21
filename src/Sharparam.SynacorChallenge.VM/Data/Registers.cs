@@ -33,6 +33,8 @@ namespace Sharparam.SynacorChallenge.VM.Data
             set => _registers[ResolveIndex(index)] = value;
         }
 
+        public Registers Copy() => new Registers(_registers);
+
         public void Reset()
         {
             for (var i = 0; i < Length; i++)

@@ -25,11 +25,12 @@ namespace Sharparam.SynacorChallenge.VM.Data
         }
 
         [JsonConstructor]
-        public State(Stack<ushort> stack, Memory memory, Registers registers)
+        public State(Stack<ushort> stack, Memory memory, Registers registers, ushort instructionPointer = 0)
         {
             _stack = stack;
             Memory = memory;
             Registers = registers;
+            _instructionPointer = instructionPointer;
         }
 
         public Memory Memory { get; }
@@ -43,6 +44,13 @@ namespace Sharparam.SynacorChallenge.VM.Data
         {
             get => _instructionPointer;
             set => _instructionPointer = value;
+        }
+
+        public State Copy()
+        {
+            var stackArray = new ushort[_stack.Count];
+            _stack.CopyTo(stackArray, 0);
+            return new State(new Stack<ushort>(stackArray), Memory.Copy(), Registers.Copy(), _instructionPointer);
         }
 
         public static State FromDumpFile(string path)

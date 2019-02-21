@@ -66,6 +66,13 @@ namespace Sharparam.SynacorChallenge.VM
             }
         }
 
+        public void LoadState(State state)
+        {
+            _state = state;
+        }
+
+        public State CopyState() => _state.Copy();
+
         public void Run(bool reset = true)
         {
             if (reset)

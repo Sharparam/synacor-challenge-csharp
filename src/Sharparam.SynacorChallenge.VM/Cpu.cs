@@ -133,12 +133,7 @@ namespace Sharparam.SynacorChallenge.VM
                     break;
 
                 case OpCode.Pop:
-                    if (Stack.Count == 0)
-                    {
-                        throw new InvalidOperationException("Cannot pop empty stack");
-                    }
-
-                    Set(Stack.Pop());
+                    Pop();
                     break;
 
                 case OpCode.Equal:
@@ -334,11 +329,16 @@ namespace Sharparam.SynacorChallenge.VM
 
         private Literal NextValue() => ValueOf(NextOperand());
 
-        private void Set(ushort value)
+        private void Pop()
         {
+            if (Stack.Count == 0)
+            {
+                throw new InvalidOperationException("Cannot pop empty stack");
+            }
+
             var idx = Pointer;
             var reg = Memory[idx];
-            Registers[reg] = value;
+            Registers[reg] = Stack.Pop();
             Pointer++;
         }
     }

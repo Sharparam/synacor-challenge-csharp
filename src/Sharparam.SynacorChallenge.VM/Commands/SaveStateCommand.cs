@@ -9,11 +9,11 @@ namespace Sharparam.SynacorChallenge.VM.Commands
     public sealed class SaveStateCommand : Command
     {
         public SaveStateCommand(ILogger<SaveStateCommand> log)
-            : base(log, @"^$save (?<path>.+)$")
+            : base(log, @"^\$save (?<path>.+)$")
         {
         }
 
-        public override (bool Handled, bool AdjustPointer) Run(Cpu cpu, Match match)
+        public override (bool Handled, bool AdjustPointer) Run(in Cpu cpu, in Match match)
         {
             var path = match.Groups["path"].Value.Trim();
 

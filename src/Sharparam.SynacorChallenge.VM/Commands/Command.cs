@@ -20,6 +20,6 @@ namespace Sharparam.SynacorChallenge.VM.Commands
 
         public Regex CommandRegex { get; }
 
-        public abstract (bool Handled, bool AdjustPointer) Run(Cpu cpu, Match match);
+        public abstract (bool Handled, bool AdjustPointer) Run(in Cpu cpu, in Match match);
     }
 }

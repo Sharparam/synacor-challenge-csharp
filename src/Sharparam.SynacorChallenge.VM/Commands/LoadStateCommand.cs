@@ -11,11 +11,11 @@ namespace Sharparam.SynacorChallenge.VM.Commands
     public sealed class LoadStateCommand : Command
     {
         public LoadStateCommand(ILogger<LoadStateCommand> log)
-            : base(log, @"^load (?<path>.+)$")
+            : base(log, @"^\$load (?<path>.+)$")
         {
         }
 
-        public override (bool Handled, bool AdjustPointer) Run(Cpu cpu, Match match)
+        public override (bool Handled, bool AdjustPointer) Run(in Cpu cpu, in Match match)
         {
             var path = match.Groups["path"].Value.Trim();
 

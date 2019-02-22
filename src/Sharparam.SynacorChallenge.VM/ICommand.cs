@@ -6,6 +6,6 @@ namespace Sharparam.SynacorChallenge.VM
     {
         Regex CommandRegex { get; }
 
-        (bool Handled, bool AdjustPointer) Run(Cpu cpu, Match match);
+        (bool Handled, bool AdjustPointer) Run(in Cpu cpu, in Match match);
     }
 }

@@ -9,18 +9,16 @@ namespace Sharparam.SynacorChallenge.VM
     {
         private readonly ILogger _log;
 
-        private readonly Cpu _cpu;
-
         private readonly IReadOnlyList<ICommand> _commands;
 
-        public CommandManager(ILogger<CommandManager> log, Cpu cpu, IEnumerable<ICommand> commands)
+        public CommandManager(ILogger<CommandManager> log, IEnumerable<ICommand> commands)
         {
             _log = log;
-            _cpu = cpu;
             _commands = commands.ToList().AsReadOnly();
+            _log.LogInformation("Loaded {Count} commands", _commands.Count);
         }
 
-        public (bool Handled, bool AdjustPointer) Handle(string line)
+        public (bool Handled, bool AdjustPointer) Handle(Cpu cpu, string line)
         {
             foreach (var command in _commands)
             {
@@ -31,7 +29,7 @@ namespace Sharparam.SynacorChallenge.VM
                     continue;
                 }
 
-                return command.Run(_cpu, match);
+                return command.Run(cpu, match);
             }
 
             return (false, true);

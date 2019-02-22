@@ -1,5 +1,7 @@
 namespace Sharparam.SynacorChallenge.VM
 {
+    using Commands;
+
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -11,7 +13,13 @@ namespace Sharparam.SynacorChallenge.VM
         {
             services.AddSingleton<IOutputWriter, TOutputWriter>();
             services.AddSingleton<IInputReader, TInputReader>();
-            return services.AddTransient<Cpu>();
+
+            services.AddTransient<ICommand, SaveStateCommand>()
+                .AddTransient<ICommand, LoadStateCommand>()
+                .AddTransient<ICommand, AddressCommand>()
+                .AddTransient<ICommand, ExitCommand>();
+
+            return services.AddTransient<Cpu>().AddTransient<CommandManager>();
         }
     }
 }

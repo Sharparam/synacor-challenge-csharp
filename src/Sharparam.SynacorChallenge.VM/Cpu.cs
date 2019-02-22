@@ -2,8 +2,6 @@ namespace Sharparam.SynacorChallenge.VM
 {
     using System;
     using System.Collections.Generic;
-    using System.ComponentModel.Design.Serialization;
-    using System.IO;
 
     using Data;
 
@@ -17,18 +15,21 @@ namespace Sharparam.SynacorChallenge.VM
 
         private readonly IInputReader _inputReader;
 
+        private readonly CommandManager _commandManager;
+
         private readonly Queue<char> _inputQueue;
 
         private State _state;
 
         private bool _running;
 
-        public Cpu(ILogger<Cpu> log, IOutputWriter outputWriter, IInputReader inputReader)
+        public Cpu(ILogger<Cpu> log, IOutputWriter outputWriter, IInputReader inputReader, CommandManager commandManager)
         {
             _log = log;
             _state = new State();
             _outputWriter = outputWriter;
             _inputReader = inputReader;
+            _commandManager = commandManager;
             _inputQueue = new Queue<char>();
         }
 
@@ -38,10 +39,10 @@ namespace Sharparam.SynacorChallenge.VM
 
         private Stack<ushort> Stack => _state.Stack;
 
-        private ushort Pointer
+        public ushort Pointer
         {
             get => _state.InstructionPointer;
-            set => _state.InstructionPointer = value;
+            private set => _state.InstructionPointer = value;
         }
 
         public void LoadProgram(Program program)
@@ -82,10 +83,13 @@ namespace Sharparam.SynacorChallenge.VM
 
             _running = true;
 
+            _log.LogInformation("Starting CPU");
             while (_running)
             {
                 Step();
             }
+
+            _log.LogInformation("Program terminated");
         }
 
         public void Reset(bool clearMemory = false)
@@ -96,6 +100,11 @@ namespace Sharparam.SynacorChallenge.VM
 
             _log.LogTrace("Resetting instruction pointer");
             Pointer = 0;
+            _running = false;
+        }
+
+        public void Halt()
+        {
             _running = false;
         }
 
@@ -274,7 +283,7 @@ namespace Sharparam.SynacorChallenge.VM
                     {
                         var line = _inputReader.ReadLine().Trim();
 
-                        var (handled, adjustPointer) = HandleInput(line);
+                        var (handled, adjustPointer) = _commandManager.Handle(this, line);
                         if (handled)
                         {
                             if (adjustPointer)
@@ -331,59 +340,6 @@ namespace Sharparam.SynacorChallenge.VM
             var reg = Memory[idx];
             Registers[reg] = value;
             Pointer++;
-        }
-
-        private (bool Handled, bool AdjustPointer) HandleInput(string line)
-        {
-            if (line.StartsWith("$save"))
-            {
-                var path = line.Substring("$save".Length).Trim();
-
-                if (string.IsNullOrWhiteSpace(path))
-                {
-                    _log.LogError("Target path cannot be empty");
-                    return (true, true);
-                }
-
-                path = Path.ChangeExtension(path, "state");
-
-                // Rewind the instruction pointer first because we need to go back to the address containing
-                // the op code to run.
-                _state.InstructionPointer--;
-                _state.SaveToDumpFile(path);
-                _log.LogInformation("Saved current state to dumpfile \"{Path}\"", path);
-                return (true, false);
-            }
-
-            if (line.StartsWith("$load"))
-            {
-                var path = line.Substring("$load".Length).Trim();
-
-                if (string.IsNullOrWhiteSpace(path))
-                {
-                    _log.LogError("Target path cannot be empty");
-                    return (true, true);
-                }
-
-                if (!File.Exists(path))
-                {
-                    _log.LogError("Target path does not exist");
-                    return (true, true);
-                }
-
-                _state = State.FromDumpFile(path);
-                _log.LogInformation("Loaded state from dumpfile \"{Path}\"", path);
-                return (true, false);
-            }
-
-            if (line == "$addr")
-            {
-                var actualAddress = Pointer - 1;
-                _log.LogInformation("Current address: {Address} (0x{HexAddress:X})", actualAddress, actualAddress);
-                return (true, true);
-            }
-
-            return (false, false);
         }
     }
 }

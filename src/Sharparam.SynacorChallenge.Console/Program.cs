@@ -11,6 +11,8 @@
 
     internal static class Program
     {
+        private const string DefaultProgram = "challenge.bin";
+
         private static void Main(string[] args)
         {
             var services = new ServiceCollection();
@@ -20,7 +22,20 @@
 
             var serviceProvider = services.BuildServiceProvider();
 
-            var path = args.Length > 0 ? args[0] : "challenge.bin";
+            string path;
+
+            if (args.Length > 0)
+            {
+                path = args[0];
+            }
+            else
+            {
+                WriteLine("What program to load (press enter for default)?");
+                Write("[challenge.bin]> ");
+                var input = ReadLine();
+
+                path = string.IsNullOrWhiteSpace(input) ? DefaultProgram : input;
+            }
 
             var program = VmProgram.FromFile(path);
 
